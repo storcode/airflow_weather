@@ -11,13 +11,14 @@ def insert_weather(cursor, date_downloads, time_downloads, r):
     count_weather = cursor.rowcount
     return count_weather
 
+
 def insert_dim_coordinates(cursor):
     cursor.execute("""
     insert into dwh.dim_coordinates (longitude, latitude)
 	    select (select * from json_to_record(w.coord) as x(lon float)) as longitude,
 	    (select * from json_to_record(w.coord) as x(lat float)) as latitude
 	    from public.weather  w
-        where w.id > (select max(coord_id) from dwh.dim_coordinates)"""
+        where w.id > (select max(coord_id) from dwh.dim_coordinates""")
     count_dim_coordinates = cursor.rowcount
     return count_dim_coordinates
 
@@ -36,7 +37,7 @@ def insert_dim_date(cursor):
                 (select extract(doy from w.date_downloads)) as day_year,
                 (select extract(month from w.date_downloads)) as month_year
         from public.weather w
-        where w.id > (select max(date_id) from dwh.dim_date)"""
+        where w.id > (select max(date_id) from dwh.dim_date""")
     count_dim_date = cursor.rowcount
     return count_dim_date
 
@@ -49,7 +50,7 @@ def insert_dim_sun_light(cursor):
         (select timestamp with time zone 'epoch' + (select * from json_to_record (w.sys) as x(sunrise int4)) * interval '1 second') as sunrise_unix,
         (select timestamp with time zone 'epoch' + (select * from json_to_record (w.sys) as x(sunset int4)) * interval '1 second') as sunset_unix
         from public.weather w
-        where w.id > (select max(sun_light_id) from dwh.dim_sun_light)"""
+        where w.id > (select max(sun_light_id) from dwh.dim_sun_light""")
     count_dim_sun_light = cursor.rowcount
     return count_dim_sun_light
 
@@ -67,7 +68,7 @@ def insert_dim_time(cursor):
                 (select case when w.time_downloads between '12:00:00' and '17:59:59' then 'afternoon' end) as afternoon,
                 (select case when w.time_downloads between '18:00:00' and '23:59:59' then 'evening' end) as evening
         from public.weather w
-        where w.id > (select max(time_id) from dwh.dim_time)"""
+        where w.id > (select max(time_id) from dwh.dim_time""")
     count_dim_time = cursor.rowcount
     return count_dim_time
 
@@ -77,7 +78,7 @@ def insert_dim_timezone(cursor):
     insert into dwh.dim_timezone (timezone)
         select w.timezone
         from public.weather w
-        where w.id > (select max(timezone_id) from dwh.dim_timezone)"""
+        where w.id > (select max(timezone_id) from dwh.dim_timezone""")
     count_dim_timezone = cursor.rowcount
     return count_dim_timezone
 
@@ -88,7 +89,7 @@ def insert_dim_timezone_name(cursor):
         select w."name",
         (select * from json_to_record(w.sys) as x(country text)) as country
         from public.weather w
-        where w.id > (select max(timezone_name_id) from dwh.dim_timezone_name)"""
+        where w.id > (select max(timezone_name_id) from dwh.dim_timezone_name""")
     count_dim_timezone_name = cursor.rowcount
     return count_dim_timezone_name
 
@@ -101,10 +102,12 @@ def insert_dim_weather_descr(cursor):
         (select * from json_to_recordset(w.weather) as x(description text)) as weather_condition_groups,
         (select * from json_to_record(w.clouds) as x("all" int4)) as clouds
         from public.weather w
-        where w.id > (select max(weather_descr_id) from dwh.dim_weather_descr)"""
+        where w.id > (select max(weather_descr_id) from dwh.dim_weather_descr""")
     count_dim_weather_descr = cursor.rowcount
     return count_dim_weather_descr
 
 
-    insert into dwh.fact_weather (dim_coordinates_id, dim_date_id, dim_sun_light_id, dim_time_id, dim_timezone_id, dim_timezone_name_id, dim_weather_descr_id, temperature, feels_like, temp_min, temp_max, pressure, humidity, visibility)
-        select ******
+def insert_fact_weather(cursor):
+    cursor.execute("""
+    insert into fact_weather (dim_coordinates_id, dim_date_id, dim_sun_light_id, dim_time_id, dim_timezone_id, dim_timezone_name_id, dim_weather_descr_id, temperature, feels_like, temp_min, temp_max, pressure, humidity, visibility)
+        select ******""")
