@@ -106,8 +106,7 @@ def insert_dim_weather_descr(cursor):
     count_dim_weather_descr = cursor.rowcount
     return count_dim_weather_descr
 
-
-#def insert_fact_weather(cursor):
+# def insert_fact_weather(cursor):
 #    cursor.execute("""
 #    insert into fact_weather (dim_coordinates_id, dim_date_id, dim_sun_light_id, dim_time_id, dim_timezone_id, dim_timezone_name_id, dim_weather_descr_id, temperature, feels_like, temp_min, temp_max, pressure, humidity, visibility)
 #        select ******""")

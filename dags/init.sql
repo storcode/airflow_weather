@@ -1,6 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS dwh;
 
-CREATE TABLE IF NOT EXISTS dwh.weather (
+CREATE TABLE IF NOT EXISTS dwh.weather
+(
 	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
 	date_downloads date NULL,
 	time_downloads time NULL,

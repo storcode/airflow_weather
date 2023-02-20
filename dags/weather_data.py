@@ -1,13 +1,14 @@
 import psycopg2
 from psycopg2 import OperationalError
 import requests
-import json
+# import json
 import pytz
 import datetime as dt
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
 from database import *
+
 
 def download():
     import key_appid
@@ -24,11 +25,9 @@ def create_connection_db():
     import key_PSQL
     connection = None
     try:
-        print(key_PSQL.password)
-        print(key_PSQL.database)
         connection = psycopg2.connect(user="postgres",
                                       password=key_PSQL.password,
-                                      host="postgres",
+                                      host="postgres",  # название контейнера в docker-compose
                                       port="5432",
                                       database=key_PSQL.database)
         print("Подключение к базе PostgreSQL успешно")
@@ -38,11 +37,17 @@ def create_connection_db():
 
 
 def process_weather_data(r):
+    import key_PSQL
     msc = pytz.timezone('europe/moscow')
     date_downloads = datetime.now(msc).strftime("%Y-%m-%d")
     time_downloads = datetime.now(msc).strftime("%H:%M:%S")
     try:
-        connection = create_connection_db()
+        connection = psycopg2.connect(user="postgres",
+                                      password=key_PSQL.password,
+                                      host="postgres",  # название контейнера в docker-compose
+                                      port="5432",
+                                      database=key_PSQL.database)
+        print("Подключение к базе PostgreSQL выполнено")
         cursor = connection.cursor()
         count_weather = insert_weather(cursor, date_downloads, time_downloads, r)
         print(count_weather, "Запись успешно вставлена в таблицу 'weather'")
@@ -69,6 +74,7 @@ def process_weather_data(r):
     except OperationalError as e:
         print(f"Произошла ошибка {e}")
 
+
 args = {
     'owner': 'storcode',
     'start_date': dt.datetime(2023, 1, 1),
@@ -89,10 +95,10 @@ with DAG(dag_id='weather', default_args=args) as dag:
         python_callable=create_connection_db,
         dag=dag
     )
-    r = download()
+    # download()
     weather_data = PythonOperator(
         task_id='proces_weather_data',
-        python_callable=process_weather_data(r),
+        python_callable=process_weather_data,
         dag=dag
     )
     file_download >> connection_db >> weather_data

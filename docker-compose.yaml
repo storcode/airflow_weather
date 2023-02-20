@@ -33,7 +33,7 @@ x-airflow-common:
 
 services:
   postgres:
-    container_name: postgres
+    container_name: airflow-postgres
     image: postgres:13
     environment:
       POSTGRES_USER: postgres
@@ -41,9 +41,10 @@ services:
       POSTGRES_DB: airflow
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
-      - ./dags/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./pgdata:/var/lib/postgresql/data  # сохраняем полученные данные здесь
+      - ./dags/init.sql:/docker-entrypoint-initdb.d/init.sql  # специальная точка входа для инициализации БД
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
       retries: 5
     restart: always
@@ -51,8 +52,8 @@ services:
       - '5434:5432'
 
   redis:
-    container_name: redis
-    image: redis:latest
+    container_name: airflow-redis
+    image: redis:7.0.8
     expose:
       - 6379
     healthcheck:
@@ -67,7 +68,7 @@ services:
     container_name: airflow-webserver
     command: webserver
     ports:
-      - 8080:8080
+      - '8080:8080'
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
@@ -99,9 +100,7 @@ services:
     container_name: airflow-common
     command: celery worker
     healthcheck:
-      test:
-        - "CMD-SHELL"
-        - 'celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+      test: ["CMD-SHELL", 'celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"']
       interval: 10s
       timeout: 10s
       retries: 5
@@ -234,7 +233,7 @@ services:
     profiles:
       - flower
     ports:
-      - 5555:5555
+      - '5555:5555'
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
       interval: 10s

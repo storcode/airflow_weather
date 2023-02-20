@@ -4,5 +4,7 @@ webserver_config.py
 key_appid.py
 key_PSQL.py
 weather_city.json
-/logs
-/plugins
+logs
+plugins
+.idea
+pgdata
