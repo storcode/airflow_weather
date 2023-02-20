@@ -1,6 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS dwh2;
+CREATE SCHEMA IF NOT EXISTS dwh;
 
-CREATE TABLE IF NOT EXISTS dwh2.weather (
+CREATE TABLE IF NOT EXISTS dwh.weather (
 	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
 	date_downloads date NULL,
 	time_downloads time NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS dwh2.weather (
 	CONSTRAINT pk_weather PRIMARY KEY (id)
 );
 
-create table dwh2.dim_coordinates
+CREATE TABLE IF NOT EXISTS dwh.dim_coordinates
 (
 	coord_id int4 generated always as identity,
 	longitude float not null,
@@ -27,7 +27,7 @@ create table dwh2.dim_coordinates
 	constraint pk_dim_coordinates primary key(coord_id)
 );
 
-create table dwh2.dim_date 
+CREATE TABLE IF NOT EXISTS dwh.dim_date 
 (
 	date_id int4 generated always as identity,
 	full_date int4 not null,
@@ -44,7 +44,7 @@ create table dwh2.dim_date
 	constraint pk_date primary key (date_id)
 );
 
-create table dwh2.dim_sun_light
+CREATE TABLE IF NOT EXISTS dwh.dim_sun_light
 (
 	sun_light_id int4 generated always as identity,
 	sunrise int4 not null,
@@ -55,7 +55,7 @@ create table dwh2.dim_sun_light
 	constraint pk_dim_sun_light primary key(sun_light_id)
 );
 
-create table dwh2.dim_time
+CREATE TABLE IF NOT EXISTS dwh.dim_time
 (
 	time_id int4 generated always as identity,
 	full_time int4 not null,
@@ -71,7 +71,7 @@ create table dwh2.dim_time
 	constraint pk_dim_time primary key (time_id)
 );
 
-create table dwh2.dim_timezone
+CREATE TABLE IF NOT EXISTS dwh.dim_timezone
 (
 	timezone_id int4 generated always as identity,
 	timezone int4 not null,
@@ -79,7 +79,7 @@ create table dwh2.dim_timezone
 	constraint pk_dim_timezone primary key(timezone_id)
 );
 
-create table dwh2.dim_timezone_name
+CREATE TABLE IF NOT EXISTS dwh.dim_timezone_name
 (
 	timezone_name_id int4 generated always as identity,
 	"name" text not null,
@@ -88,7 +88,7 @@ create table dwh2.dim_timezone_name
 	constraint pk_dim_timezone_name primary key(timezone_name_id)
 );
 
-create table dwh2.dim_weather_descr
+CREATE TABLE IF NOT EXISTS dwh.dim_weather_descr
 (
 	weather_descr_id int4 generated always as identity,
 	condition_id int4 not null,
@@ -99,7 +99,7 @@ create table dwh2.dim_weather_descr
 	constraint pk_dim_weather_descr primary key (weather_descr_id)
 );
 
-create table dwh2.fact_weather
+CREATE TABLE IF NOT EXISTS dwh.fact_weather
 (
 	fact_weather_id int4 generated always as identity,
 	dim_coordinates_id int4 not null,
@@ -118,11 +118,11 @@ create table dwh2.fact_weather
 	visibility int4 not null,
 	sys_ts timestamp(0) default now(),
 	CONSTRAINT pk_fact_weather PRIMARY KEY (fact_weather_id),
-	CONSTRAINT fk_coord FOREIGN KEY (dim_coordinates_id) REFERENCES dwh2.dim_coordinates(coord_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_dim_date FOREIGN KEY (dim_date_id) REFERENCES dwh2.dim_date(date_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_sun_light FOREIGN KEY (dim_sun_light_id) REFERENCES dwh2.dim_sun_light(sun_light_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_time FOREIGN KEY (dim_time_id) REFERENCES dwh2.dim_time(time_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_timezone FOREIGN KEY (dim_timezone_id) REFERENCES dwh2.dim_timezone(timezone_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_timezone_name FOREIGN KEY (dim_timezone_name_id) REFERENCES dwh2.dim_timezone_name(timezone_name_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_weather_descr FOREIGN KEY (dim_weather_descr_id) REFERENCES dwh2.dim_weather_descr(weather_descr_id) ON DELETE CASCADE ON UPDATE CASCADE
+	CONSTRAINT fk_coord FOREIGN KEY (dim_coordinates_id) REFERENCES dwh.dim_coordinates(coord_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_dim_date FOREIGN KEY (dim_date_id) REFERENCES dwh.dim_date(date_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_sun_light FOREIGN KEY (dim_sun_light_id) REFERENCES dwh.dim_sun_light(sun_light_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_time FOREIGN KEY (dim_time_id) REFERENCES dwh.dim_time(time_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_timezone FOREIGN KEY (dim_timezone_id) REFERENCES dwh.dim_timezone(timezone_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_timezone_name FOREIGN KEY (dim_timezone_name_id) REFERENCES dwh.dim_timezone_name(timezone_name_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_weather_descr FOREIGN KEY (dim_weather_descr_id) REFERENCES dwh.dim_weather_descr(weather_descr_id) ON DELETE CASCADE ON UPDATE CASCADE
 );

@@ -3,8 +3,8 @@ import json
 
 def insert_weather(cursor, date_downloads, time_downloads, r):
     cursor.execute(
-        "INSERT INTO public.weather (date_downloads,time_downloads,coord,weather,base,main,visibility,wind,clouds,dt,sys,timezone,name)"
-        "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+        """INSERT INTO dwh.weather (date_downloads,time_downloads,coord,weather,base,main,visibility,wind,clouds,dt,sys,timezone,name)"""
+        """VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
         (date_downloads, time_downloads,
          json.dumps(r["coord"]), json.dumps(r["weather"]), r["base"], json.dumps(r["main"]), r["visibility"],
          json.dumps(r["wind"]), json.dumps(r["clouds"]), r["dt"], json.dumps(r["sys"]), r["timezone"], r["name"]))
@@ -107,7 +107,7 @@ def insert_dim_weather_descr(cursor):
     return count_dim_weather_descr
 
 
-def insert_fact_weather(cursor):
-    cursor.execute("""
-    insert into fact_weather (dim_coordinates_id, dim_date_id, dim_sun_light_id, dim_time_id, dim_timezone_id, dim_timezone_name_id, dim_weather_descr_id, temperature, feels_like, temp_min, temp_max, pressure, humidity, visibility)
-        select ******""")
+#def insert_fact_weather(cursor):
+#    cursor.execute("""
+#    insert into fact_weather (dim_coordinates_id, dim_date_id, dim_sun_light_id, dim_time_id, dim_timezone_id, dim_timezone_name_id, dim_weather_descr_id, temperature, feels_like, temp_min, temp_max, pressure, humidity, visibility)
+#        select ******""")
