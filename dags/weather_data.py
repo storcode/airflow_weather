@@ -26,10 +26,10 @@ def create_connection_db():
     connection = None
     try:
         connection = psycopg2.connect(user="postgres",
-                                      password=key_PSQL.password,
+                                      password="postgres",
                                       host="postgres",  # название контейнера в docker-compose
                                       port="5432",
-                                      database=key_PSQL.database)
+                                      database="postgres")
         print("Подключение к базе PostgreSQL успешно")
     except OperationalError as e:
         print(f"The error '{e}' occurred")
@@ -43,10 +43,10 @@ def process_weather_data(r):
     time_downloads = datetime.now(msc).strftime("%H:%M:%S")
     try:
         connection = psycopg2.connect(user="postgres",
-                                      password=key_PSQL.password,
+                                      password="postgres",
                                       host="postgres",  # название контейнера в docker-compose
                                       port="5432",
-                                      database=key_PSQL.database)
+                                      database="postgres")
         print("Подключение к базе PostgreSQL выполнено")
         cursor = connection.cursor()
         count_weather = insert_weather(cursor, date_downloads, time_downloads, r)
@@ -95,10 +95,10 @@ with DAG(dag_id='weather', default_args=args) as dag:
         python_callable=create_connection_db,
         dag=dag
     )
-    # download()
     weather_data = PythonOperator(
         task_id='proces_weather_data',
         python_callable=process_weather_data,
         dag=dag
     )
     file_download >> connection_db >> weather_data
+
