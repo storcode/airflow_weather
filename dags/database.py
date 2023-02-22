@@ -1,13 +1,14 @@
 import json
 
 
-def insert_weather(cursor, date_downloads, time_downloads, r):
+def insert_weather(cursor, date_downloads, time_downloads, reg_json):
     cursor.execute(
-        """INSERT INTO dwh.weather (date_downloads,time_downloads,coord,weather,base,main,visibility,wind,clouds,dt,sys,timezone,name)"""
-        """VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+        """INSERT INTO dwh.weather (date_downloads,time_downloads,coord,weather,base,main,visibility,wind,clouds,
+        dt,sys,timezone,name) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
         (date_downloads, time_downloads,
-         json.dumps(r["coord"]), json.dumps(r["weather"]), r["base"], json.dumps(r["main"]), r["visibility"],
-         json.dumps(r["wind"]), json.dumps(r["clouds"]), r["dt"], json.dumps(r["sys"]), r["timezone"], r["name"]))
+         json.dumps(reg_json["coord"]), json.dumps(reg_json["weather"]), reg_json["base"], json.dumps(reg_json["main"]),
+         reg_json["visibility"], json.dumps(reg_json["wind"]), json.dumps(reg_json["clouds"]), reg_json["dt"],
+         json.dumps(reg_json["sys"]), reg_json["timezone"], reg_json["name"]))
     count_weather = cursor.rowcount
     return count_weather
 
@@ -16,7 +17,7 @@ def insert_dim_coordinates(cursor):
     cursor.execute("""
     insert into dwh.dim_coordinates (longitude, latitude)
 	    select (select * from json_to_record(w.coord) as x(lon float)) as longitude,
-	    (select * from json_to_record(w.coord) as x(lat float)) as latitude
+	        (select * from json_to_record(w.coord) as x(lat float)) as latitude
 	    from public.weather  w
         where w.id > (select max(coord_id) from dwh.dim_coordinates""")
     count_dim_coordinates = cursor.rowcount
@@ -25,7 +26,8 @@ def insert_dim_coordinates(cursor):
 
 def insert_dim_date(cursor):
     cursor.execute("""
-    insert into dwh.dim_date (full_date, initial_date, "year", "month", "day", "quarter", number_week , day_week, day_year, month_year)
+    insert into dwh.dim_date (full_date, initial_date, "year", "month", "day", "quarter", number_week,
+    day_week, day_year, month_year)
         select  (select to_char(w.date_downloads, 'YYYYMMDD')::int4) as full_date,
                 w.date_downloads,
                 (select extract(year from w.date_downloads)) as "year",
@@ -47,8 +49,10 @@ def insert_dim_sun_light(cursor):
     insert into dwh.dim_sun_light (sunrise, sunset, sunrise_unix, sunset_unix)
         select (select * from json_to_record(w.sys) as x(sunrise int4)) as sunrise,
         (select * from json_to_record (w.sys) as x(sunset int4)) as sunset,
-        (select timestamp with time zone 'epoch' + (select * from json_to_record (w.sys) as x(sunrise int4)) * interval '1 second') as sunrise_unix,
-        (select timestamp with time zone 'epoch' + (select * from json_to_record (w.sys) as x(sunset int4)) * interval '1 second') as sunset_unix
+        (select timestamp with time zone 'epoch' + (select * from json_to_record (w.sys)
+            as x(sunrise int4)) * interval '1 second') as sunrise_unix,
+        (select timestamp with time zone 'epoch' + (select * from json_to_record (w.sys)
+            as x(sunset int4)) * interval '1 second') as sunset_unix
         from public.weather w
         where w.id > (select max(sun_light_id) from dwh.dim_sun_light""")
     count_dim_sun_light = cursor.rowcount
@@ -108,5 +112,7 @@ def insert_dim_weather_descr(cursor):
 
 # def insert_fact_weather(cursor):
 #    cursor.execute("""
-#    insert into fact_weather (dim_coordinates_id, dim_date_id, dim_sun_light_id, dim_time_id, dim_timezone_id, dim_timezone_name_id, dim_weather_descr_id, temperature, feels_like, temp_min, temp_max, pressure, humidity, visibility)
+#    insert into fact_weather (dim_coordinates_id, dim_date_id, dim_sun_light_id, dim_time_id,
+#    dim_timezone_id, dim_timezone_name_id, dim_weather_descr_id, temperature, feels_like,
+#    temp_min, temp_max, pressure, humidity, visibility)
 #        select ******""")
