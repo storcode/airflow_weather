@@ -1,14 +1,14 @@
 import json
 
 
-def insert_weather(cursor, date_downloads, time_downloads, reg_json):
+def insert_weather(cursor, date_downloads, time_downloads, req_json):
     cursor.execute(
         """INSERT INTO dwh.weather (date_downloads,time_downloads,coord,weather,base,main,visibility,wind,clouds,
         dt,sys,timezone,name) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
         (date_downloads, time_downloads,
-         json.dumps(reg_json["coord"]), json.dumps(reg_json["weather"]), reg_json["base"], json.dumps(reg_json["main"]),
-         reg_json["visibility"], json.dumps(reg_json["wind"]), json.dumps(reg_json["clouds"]), reg_json["dt"],
-         json.dumps(reg_json["sys"]), reg_json["timezone"], reg_json["name"]))
+         json.dumps(req_json["coord"]), json.dumps(req_json["weather"]), req_json["base"], json.dumps(req_json["main"]),
+         req_json["visibility"], json.dumps(req_json["wind"]), json.dumps(req_json["clouds"]), req_json["dt"],
+         json.dumps(req_json["sys"]), req_json["timezone"], req_json["name"]))
     count_weather = cursor.rowcount
     return count_weather
 

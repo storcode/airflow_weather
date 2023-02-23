@@ -12,15 +12,15 @@ from database import *
 def download():
     import key_appid
     url = f'https://api.openweathermap.org/data/2.5/weather?q=Cheboksary,ru&APPID={key_appid.key_appid}&units=metric'
-    reg_json = requests.get(url=url).json()
+    req_json = requests.get(url=url).json()
 
     with open('weather_city.json', 'w') as json_file:
-        json.dump(reg_json, json_file)
+        json.dump(req_json, json_file)
     print("Файл успешно скачан")
-    return reg_json
+    return req_json
 
 
-def process_weather_data(reg_json):
+def process_weather_data(req_json):
     import key_PSQL
     msc = pytz.timezone('europe/moscow')
     date_downloads = datetime.now(msc).strftime("%Y-%m-%d")
@@ -33,7 +33,7 @@ def process_weather_data(reg_json):
                                       database="postgres")
         print("Подключение к базе PostgreSQL выполнено")
         cursor = connection.cursor()
-        count_weather = insert_weather(cursor, date_downloads, time_downloads, reg_json)
+        count_weather = insert_weather(cursor, date_downloads, time_downloads, req_json)
         print(count_weather, "Запись успешно вставлена в таблицу 'weather'")
         count_dim_coordinates = insert_dim_coordinates(cursor)
         print(count_dim_coordinates, "Запись успешно вставлена в таблицу 'dim_coordinates'")
@@ -59,25 +59,25 @@ def process_weather_data(reg_json):
         print(f"Произошла ошибка {e}")
 
 
-args = {
-    'owner': 'storcode',
-    'start_date': dt.datetime(2023, 1, 1),
-    'retries': 1,
-    'retry_delay': dt.timedelta(minutes=1),
-    'schedule_interval': '*/5 * * * *',
-    'depends_on_past': False
-}
-
-with DAG(dag_id='weather', default_args=args) as dag:
-    file_download = PythonOperator(
-        task_id='download',
-        python_callable=download,
-        dag=dag
-    )
-    weather_data = PythonOperator(
-        task_id='process_weather_data',
-        python_callable=process_weather_data,
-        # op_kwargs=download(),
-        dag=dag
-    )
-    file_download >> weather_data
+# args = {
+#     'owner': 'storcode',
+#     'start_date': dt.datetime(2023, 1, 1),
+#     'retries': 1,
+#     'retry_delay': dt.timedelta(minutes=1),
+#     'schedule_interval': '*/5 * * * *',
+#     'depends_on_past': False
+# }
+#
+# with DAG(dag_id='weather', default_args=args) as dag:
+#     file_download = PythonOperator(
+#         task_id='download',
+#         python_callable=download,
+#         dag=dag
+#     )
+#     weather_data = PythonOperator(
+#         task_id='process_weather_data',
+#         python_callable=process_weather_data,
+#         # op_kwargs=download(),
+#         dag=dag
+#     )
+#     file_download >> weather_data
