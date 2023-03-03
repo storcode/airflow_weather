@@ -2,11 +2,9 @@ import psycopg2
 from psycopg2 import OperationalError
 import requests
 import pytz
-import json
 import datetime as dt
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-# from airflow.operators.dummy import DummyOperator
 from datetime import datetime
 from database import *
 
@@ -18,21 +16,13 @@ def download():
 
     with open('weather_city.json', 'w') as json_file:
         json.dump(reg_json, json_file)
-    # print("Файл успешно скачан")
     print(reg_json)
     return reg_json
-
-
-    # with open('weather_city.json', 'w') as json_file:
-    #     req_json = json.dumps(req, json_file)
-    # print("Файл успешно скачан")
-    # return req_json
 
 
 def process_weather_data():
     import key_PSQL
     req_json = download()
-    # print(req_json)
     msc = pytz.timezone('europe/moscow')
     date_downloads = datetime.now(msc).strftime("%Y-%m-%d")
     time_downloads = datetime.now(msc).strftime("%H:%M:%S")
@@ -84,21 +74,8 @@ args = {
 }
 
 with DAG(dag_id='weather', default_args=args) as dag:
-    # start = DummyOperator(
-    #     task_id="start",
-    #     do_xcom_push=False,
-    #     dag=dag
-    # )
     weather_data = PythonOperator(
         task_id='process_weather_data',
         python_callable=process_weather_data,
         dag=dag
     )
-    # end = DummyOperator(
-    #     task_id="end",
-    #     do_xcom_push=False,
-    #     dag=dag
-    # )
-    # start >> weather_data >> end
-
-process_weather_data()
