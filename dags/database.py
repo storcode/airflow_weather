@@ -222,6 +222,6 @@ def insert_stage_fact_weather(cursor):
     cross join lateral json_to_record(src.main) as temp_mx(temp_max float)
     cross join lateral json_to_record(src.main) as pr(pressure int4)
     cross join lateral json_to_record(src.main) as hum(humidity int4)
-    order by weather_idl""")
+    order by weather_id""")
     count_stage_fact_weather = cursor.rowcount
     return count_stage_fact_weather

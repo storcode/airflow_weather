@@ -103,7 +103,6 @@ CREATE TABLE IF NOT EXISTS dwh.dim_weather_descr
 	condition_id int4 not null,
 	group_main_params text not null,
 	weather_condition_groups text not null,
-	clouds int4 not null,
 	sys_ts timestamp(0) default now(),
 	constraint pk_dim_weather_descr primary key (weather_descr_id)
 );

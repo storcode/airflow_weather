@@ -18,8 +18,10 @@ def download():
 
     with open('weather_city.json', 'w') as json_file:
         json.dump(reg_json, json_file)
-    print("Файл успешно скачан")
+    # print("Файл успешно скачан")
+    print(reg_json)
     return reg_json
+
 
     # with open('weather_city.json', 'w') as json_file:
     #     req_json = json.dumps(req, json_file)
@@ -39,7 +41,7 @@ def process_weather_data():
                                       password=key_PSQL.password,
                                       host="postgres",  # название контейнера в docker-compose
                                       port="5432",
-                                      database="postgres")
+                                      database="airflow")
         print("Подключение к базе PostgreSQL выполнено")
         cursor = connection.cursor()
         count_weather = insert_weather(cursor, date_downloads, time_downloads, req_json)
@@ -63,7 +65,7 @@ def process_weather_data():
         count_dim_wind = insert_dim_wind(cursor)
         print(count_dim_wind, "Запись успешно вставлена в таблицу 'dim_wind'")
         count_stage_fact_weather = insert_stage_fact_weather(cursor)
-        print(count_stage_fact_weather, "Запись успешно вставлена в таблицу 'fact_weather'")
+        print(count_stage_fact_weather, "Запись успешно вставлена в таблицу 'stage_fact_weather'")
         connection.commit()
         cursor.close()
         connection.close()
@@ -98,3 +100,5 @@ with DAG(dag_id='weather', default_args=args) as dag:
     #     dag=dag
     # )
     # start >> weather_data >> end
+
+process_weather_data()
