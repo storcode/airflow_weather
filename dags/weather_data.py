@@ -2,9 +2,11 @@ import psycopg2
 from psycopg2 import OperationalError
 import requests
 import pytz
+import json
 import datetime as dt
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+# from airflow.operators.dummy import DummyOperator
 from datetime import datetime
 from database import *
 
@@ -12,16 +14,23 @@ from database import *
 def download():
     import key_appid
     url = f'https://api.openweathermap.org/data/2.5/weather?q=Cheboksary,ru&APPID={key_appid.key_appid}&units=metric'
-    req_json = requests.get(url=url).json()
+    reg_json = requests.get(url=url).json()
 
     with open('weather_city.json', 'w') as json_file:
-        json.dump(req_json, json_file)
+        json.dump(reg_json, json_file)
     print("Файл успешно скачан")
-    return req_json
+    return reg_json
+
+    # with open('weather_city.json', 'w') as json_file:
+    #     req_json = json.dumps(req, json_file)
+    # print("Файл успешно скачан")
+    # return req_json
 
 
-def process_weather_data(req_json):
+def process_weather_data():
     import key_PSQL
+    req_json = download()
+    # print(req_json)
     msc = pytz.timezone('europe/moscow')
     date_downloads = datetime.now(msc).strftime("%Y-%m-%d")
     time_downloads = datetime.now(msc).strftime("%H:%M:%S")
@@ -35,6 +44,8 @@ def process_weather_data(req_json):
         cursor = connection.cursor()
         count_weather = insert_weather(cursor, date_downloads, time_downloads, req_json)
         print(count_weather, "Запись успешно вставлена в таблицу 'weather'")
+        count_dim_clouds = insert_dim_clouds(cursor)
+        print(count_dim_clouds, "Запись успешно вставлена в таблицу 'dim_clouds'")
         count_dim_coordinates = insert_dim_coordinates(cursor)
         print(count_dim_coordinates, "Запись успешно вставлена в таблицу 'dim_coordinates'")
         count_dim_date = insert_dim_date(cursor)
@@ -49,8 +60,10 @@ def process_weather_data(req_json):
         print(count_dim_timezone_name, "Запись успешно вставлена в таблицу 'dim_timezone_name'")
         count_dim_weather_descr = insert_dim_weather_descr(cursor)
         print(count_dim_weather_descr, "Запись успешно вставлена в таблицу 'dim_weather_descr'")
-        #      count_fact_weather = insert_fact_weather(cursor)
-        #      print(count_fact_weather, "Запись успешно вставлена в таблицу 'fact_weather'")
+        count_dim_wind = insert_dim_wind(cursor)
+        print(count_dim_wind, "Запись успешно вставлена в таблицу 'dim_wind'")
+        count_stage_fact_weather = insert_stage_fact_weather(cursor)
+        print(count_stage_fact_weather, "Запись успешно вставлена в таблицу 'fact_weather'")
         connection.commit()
         cursor.close()
         connection.close()
@@ -59,25 +72,29 @@ def process_weather_data(req_json):
         print(f"Произошла ошибка {e}")
 
 
-# args = {
-#     'owner': 'storcode',
-#     'start_date': dt.datetime(2023, 1, 1),
-#     'retries': 1,
-#     'retry_delay': dt.timedelta(minutes=1),
-#     'schedule_interval': '*/5 * * * *',
-#     'depends_on_past': False
-# }
-#
-# with DAG(dag_id='weather', default_args=args) as dag:
-#     file_download = PythonOperator(
-#         task_id='download',
-#         python_callable=download,
-#         dag=dag
-#     )
-#     weather_data = PythonOperator(
-#         task_id='process_weather_data',
-#         python_callable=process_weather_data,
-#         # op_kwargs=download(),
-#         dag=dag
-#     )
-#     file_download >> weather_data
+args = {
+    'owner': 'storcode',
+    'start_date': dt.datetime(2023, 1, 1),
+    'retries': 2,
+    'retry_delay': dt.timedelta(minutes=1),
+    'schedule_interval': '*/5 * * * *',
+    'depends_on_past': False
+}
+
+with DAG(dag_id='weather', default_args=args) as dag:
+    # start = DummyOperator(
+    #     task_id="start",
+    #     do_xcom_push=False,
+    #     dag=dag
+    # )
+    weather_data = PythonOperator(
+        task_id='process_weather_data',
+        python_callable=process_weather_data,
+        dag=dag
+    )
+    # end = DummyOperator(
+    #     task_id="end",
+    #     do_xcom_push=False,
+    #     dag=dag
+    # )
+    # start >> weather_data >> end

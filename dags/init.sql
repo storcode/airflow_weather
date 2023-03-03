@@ -19,6 +19,14 @@ CREATE TABLE IF NOT EXISTS dwh.weather
 	CONSTRAINT pk_weather PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS dwh.dim_clouds
+(
+	clouds_id int4 generated always as identity,
+	clouds int4 not null,
+	sys_ts timestamp(0) default now(),
+	constraint pk_dim_clouds primary key (clouds_id)
+);
+
 CREATE TABLE IF NOT EXISTS dwh.dim_coordinates
 (
 	coord_id int4 generated always as identity,
@@ -100,16 +108,46 @@ CREATE TABLE IF NOT EXISTS dwh.dim_weather_descr
 	constraint pk_dim_weather_descr primary key (weather_descr_id)
 );
 
-CREATE TABLE IF NOT EXISTS dwh.fact_weather
+CREATE TABLE IF NOT EXISTS dwh.dim_wind
 (
-	fact_weather_id int4 generated always as identity,
-	dim_coordinates_id int4 not null,
+	wind_id int4 generated always as identity,
+	speed int4 not null,
+	"degree" int4 not null,
+	sys_ts timestamp(0) default now(),
+	constraint pk_dim_wind primary key(wind_id)
+);
+
+CREATE TABLE IF NOT EXISTS dwh.stage_fact_weather
+(
+	stage_fact_weather_id int4 generated always as identity,
+	weather_id int4 not null,
+	hash uuid not null,
 	dim_date_id int4 not null,
-	dim_sun_light_id int4 not null,
+	date_downloads date not null,
 	dim_time_id int4 not null,
+	time_downloads time not null,
+	dim_coordinates_id int4 not null,
+	longitude float not null,
+	latitude float not null,
+	dim_sun_light_id int4 not null,
+	sun_light_type int4 not null,
+	sun_l_id int4 not null,
+	sun_l_country text not null,
+	sun_l_sunrise int8 not null,
+	sun_l_sunset int8 not null,
 	dim_timezone_id int4 not null,
+	timezone int4 not null,
 	dim_timezone_name_id int4 not null,
+	timezone_name text not null,
 	dim_weather_descr_id int4 not null,
+	weather_descr_id int4 not null,
+	weather_main text not null,
+	weather_description text not null,
+	dim_clouds_id int4 not null,
+	cloudiness int4 not null,
+	dim_wind_id int4 not null,
+	wind_speed int4 not null,
+	wind_direction int4 not null,
 	temperature float not null,
 	feels_like float not null,
 	temp_min float not null,
@@ -117,13 +155,6 @@ CREATE TABLE IF NOT EXISTS dwh.fact_weather
 	pressure int4 not null,
 	humidity int4 not null,
 	visibility int4 not null,
-	sys_ts timestamp(0) default now(),
-	CONSTRAINT pk_fact_weather PRIMARY KEY (fact_weather_id),
-	CONSTRAINT fk_coord FOREIGN KEY (dim_coordinates_id) REFERENCES dwh.dim_coordinates(coord_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_dim_date FOREIGN KEY (dim_date_id) REFERENCES dwh.dim_date(date_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_sun_light FOREIGN KEY (dim_sun_light_id) REFERENCES dwh.dim_sun_light(sun_light_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_time FOREIGN KEY (dim_time_id) REFERENCES dwh.dim_time(time_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_timezone FOREIGN KEY (dim_timezone_id) REFERENCES dwh.dim_timezone(timezone_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_timezone_name FOREIGN KEY (dim_timezone_name_id) REFERENCES dwh.dim_timezone_name(timezone_name_id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT fk_weather_descr FOREIGN KEY (dim_weather_descr_id) REFERENCES dwh.dim_weather_descr(weather_descr_id) ON DELETE CASCADE ON UPDATE CASCADE
+	time_calculation int8 not null,
+	sys_ts timestamp(0) default now()
 );
