@@ -6,6 +6,7 @@ import datetime as dt
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
+import pendulum
 from database import *
 
 
@@ -16,7 +17,6 @@ def download():
 
     with open('weather_city.json', 'w') as json_file:
         json.dump(reg_json, json_file)
-    print(reg_json)
     return reg_json
 
 
@@ -66,14 +66,13 @@ def process_weather_data():
 
 args = {
     'owner': 'storcode',
-    'start_date': dt.datetime(2023, 1, 1),
-    'retries': 2,
-    'retry_delay': dt.timedelta(minutes=1),
-    'schedule_interval': '*/5 * * * *',
+    'retries': 1,
+    'retry_delay': pendulum.duration(minutes=1),
     'depends_on_past': False
 }
 
-with DAG(dag_id='weather', default_args=args) as dag:
+with DAG(dag_id='weather', default_args=args, schedule_interval='*/5 * * * *',
+         start_date=pendulum.now('Europe/Moscow'), catchup=False) as dag:
     weather_data = PythonOperator(
         task_id='process_weather_data',
         python_callable=process_weather_data,
