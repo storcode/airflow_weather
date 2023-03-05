@@ -2,9 +2,9 @@ import psycopg2
 from psycopg2 import OperationalError
 import requests
 import pytz
-import datetime as dt
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 from datetime import datetime
 import pendulum
 from database import *
@@ -64,17 +64,23 @@ def process_weather_data():
         print(f"Произошла ошибка {e}")
 
 
-args = {
+with DAG(dag_id='weather', default_args={
     'owner': 'storcode',
     'retries': 1,
     'retry_delay': pendulum.duration(minutes=1),
-    'depends_on_past': False
-}
+    'catchup': False,
+    'depends_on_past': True
+    },
+         schedule_interval='*/5 * * * *',
+         start_date=pendulum.datetime(2023, 1, 1), catchup=False, ) as dag:
+    hello = BashOperator(
+        task_id="hello",
+        bash_command="echo hello"
+    )
 
-with DAG(dag_id='weather', default_args=args, schedule_interval='*/5 * * * *',
-         start_date=pendulum.now('Europe/Moscow'), catchup=False) as dag:
     weather_data = PythonOperator(
         task_id='process_weather_data',
         python_callable=process_weather_data,
         dag=dag
     )
+    hello >> weather_data
