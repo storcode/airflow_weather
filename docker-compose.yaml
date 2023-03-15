@@ -58,7 +58,7 @@ services:
     container_name: airflow-webserver
     command: webserver
     ports:
-      - '8080:8080'
+      - '4040:8080'
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
@@ -117,7 +117,7 @@ services:
     profiles:
       - flower
     ports:
-      - '5555:5555'
+      - '4444:5555'
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
       interval: 10s

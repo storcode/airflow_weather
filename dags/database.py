@@ -222,6 +222,10 @@ def insert_stage_fact_weather(cursor):
     cross join lateral json_to_record(src.main) as temp_mx(temp_max float)
     cross join lateral json_to_record(src.main) as pr(pressure int4)
     cross join lateral json_to_record(src.main) as hum(humidity int4)
-    order by weather_id""")
+    where not exists (
+    	select stage_fact_weather_id from dwh.stage_fact_weather group by stage_fact_weather_id
+    	having stage_fact_weather_id >= src.id
+    	)
+    order by weather_id, dim_time_id""")
     count_stage_fact_weather = cursor.rowcount
     return count_stage_fact_weather
