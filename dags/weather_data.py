@@ -14,9 +14,8 @@ def download():
     import key_appid
     url = f'https://api.openweathermap.org/data/2.5/weather?q=Cheboksary,ru&APPID={key_appid.key_appid}&units=metric'
     reg_json = requests.get(url=url).json()
-
-    with open('weather_city.json', 'w') as json_file:
-        json.dump(reg_json, json_file)
+    json.dumps(reg_json)
+    print(reg_json)
     return reg_json
 
 
@@ -71,7 +70,7 @@ with DAG(dag_id='weather', default_args={
     'catchup': False,
     'depends_on_past': True
     },
-         schedule_interval='*/5 * * * *',
+         schedule_interval='*/10 * * * *',
          start_date=pendulum.datetime(2023, 1, 1), catchup=False, ) as dag:
     hello = BashOperator(
         task_id="hello",

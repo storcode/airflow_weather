@@ -23,7 +23,7 @@ def insert_dim_clouds(cursor):
         left join dwh.dim_clouds dwd
             on dwd.clouds = src.clouds
         where dwd.clouds is null
-        group by src.clouds""")
+        order by sys_ts""")
     count_dim_clouds = cursor.rowcount
     return count_dim_clouds
 
@@ -46,20 +46,21 @@ def insert_dim_coordinates(cursor):
 
 def insert_dim_date(cursor):
     cursor.execute("""
-    insert into dwh.dim_date (full_date, initial_date, "year", "month", "day", "quarter", 
-                                number_week, day_week, day_year, month_year)
-    select src.full_date, src.initial_date, src."year", src."month", src."day", 
-            src."quarter", src.number_week , src.day_week, src.day_year, src.month_year
+    insert into dwh.dim_date (full_date, initial_date, "year", "month", month_txt, "day", "quarter", 
+                                number_week, day_week, week_txt,  day_year)
+    select src.full_date, src.initial_date, src."year", src."month", src.month_txt, src."day", 
+            src."quarter", src.number_week , src.day_week, src.week_txt, src.day_year
     from (select (select to_char(w.date_downloads, 'YYYYMMDD')::int4) as full_date,
             w.date_downloads as initial_date,
             (select extract(year from w.date_downloads)) as "year",
             (select extract(month from w.date_downloads)) as "month",
+            (select to_char(w.date_downloads, 'month')) as month_txt,
             (select extract(day from w.date_downloads)) as "day",
             (select extract(quarter from w.date_downloads)) as "quarter",
             (select extract(week from w.date_downloads)) as number_week,
             (select extract(isodow from w.date_downloads)) as day_week,
-            (select extract(doy from w.date_downloads)) as day_year,
-            (select extract(month from w.date_downloads)) as month_year
+            (select to_char(w.date_downloads, 'day')) as week_txt,
+            (select extract(doy from w.date_downloads)) as day_year
             from dwh.weather w
             group by date_downloads
     ) as src
@@ -158,7 +159,8 @@ def insert_dim_weather_descr(cursor):
     left join dwh.dim_weather_descr dwd
         on (dwd.group_main_params, dwd.weather_condition_groups) = (src.group_main_params, src.weather_condition_groups)
     where (dwd.condition_id, dwd.group_main_params, dwd.weather_condition_groups) is null
-    group by src.condition_id, src.group_main_params, src.weather_condition_groups""")
+    group by src.condition_id, src.group_main_params, src.weather_condition_groups
+    order by sys_ts""")
     count_dim_weather_descr = cursor.rowcount
     return count_dim_weather_descr
 
@@ -174,7 +176,8 @@ def insert_dim_wind(cursor):
     ) as src
     left join dwh.dim_wind as dw
         on (dw.speed, dw."degree") = (src.speed, src."degree")
-    where dw.speed is null""")
+    where dw.speed is null
+    order by sys_ts""")
     count_dim_wind = cursor.rowcount
     return count_dim_wind
 
@@ -226,6 +229,6 @@ def insert_stage_fact_weather(cursor):
     	select stage_fact_weather_id from dwh.stage_fact_weather group by stage_fact_weather_id
     	having stage_fact_weather_id >= src.id
     	)
-    order by weather_id, dim_time_id""")
+    order by weather_id, dim_time_id, sys_ts""")
     count_stage_fact_weather = cursor.rowcount
     return count_stage_fact_weather

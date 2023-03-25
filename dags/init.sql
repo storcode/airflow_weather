@@ -43,12 +43,13 @@ CREATE TABLE IF NOT EXISTS dwh.dim_date
 	initial_date date not null,
 	"year" int4 not null,
 	"month" int4 not null,
+	month_text text not null,
 	"day" int4 not null,
 	"quarter" int4 not null,
 	number_week int4 not null,
 	day_week int4 not null,
-	day_year int4 not null,
-	month_year int4 not null,
+	week_txt text not null,
+	day_year int4 not null
 	sys_ts timestamp(0) default now(),
 	constraint pk_date primary key (date_id)
 );
